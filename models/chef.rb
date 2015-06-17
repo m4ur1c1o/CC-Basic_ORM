@@ -1,12 +1,7 @@
 class Chef < MiniActiveRecord::Model
-  def self.all
-    MiniActiveRecord::Model.execute("SELECT * FROM chefs").map do |row|
-      Chef.new(row)
-    end
-  end
 
   def self.create(attributes)
-    record = self.new(attributes)
+    record = Chef.new(attributes)
     record.save
 
     record
@@ -24,55 +19,11 @@ class Chef < MiniActiveRecord::Model
 
   self.attribute_names = [:id, :first_name, :last_name, :email, :phone,
                           :birthday, :created_at, :updated_at]
-
-  attr_reader :attributes, :old_attributes
-
-  # e.g., Chef.new(id: 1, first_name: 'Steve', last_name: 'Rogers', ...)
-  def initialize(attributes = {})
-    attributes.symbolize_keys!
-    raise_error_if_invalid_attribute!(attributes.keys)
-
-    # This defines the value even if it's not present in attributes
-    @attributes = {}
-
-    Chef.attribute_names.each do |name|
-      @attributes[name] = attributes[name]
-    end
-
-    @old_attributes = @attributes.dup
-  end
-
-  def save
-    if new_record?
-      results = insert!
-    else
-      results = update!
-    end
-
-    # When we save, remove changes between new and old attributes
-    @old_attributes = @attributes.dup
-
-    results
-  end
-
+  
   # We say a record is "new" if it doesn't have a defined primary key in its
   # attributes
   def new_record?
     self[:id].nil?
-  end
-
-  # e.g., chef[:first_name] #=> 'Steve'
-  def [](attribute)
-    raise_error_if_invalid_attribute!(attribute)
-
-    @attributes[attribute]
-  end
-
-  # e.g., chef[:first_name] = 'Steve'
-  def []=(attribute, value)
-    raise_error_if_invalid_attribute!(attribute)
-
-    @attributes[attribute] = value
   end
 
   def meals

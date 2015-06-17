@@ -3,6 +3,65 @@ module MiniActiveRecord
   class NotConnectedError < StandardError; end
 
   class Model
+    attr_reader :attributes, :old_attributes
+
+    # e.g., Chef.new(id: 1, first_name: 'Steve', last_name: 'Rogers', ...)
+    def initialize(attributes = {})
+      attributes.symbolize_keys!
+      raise_error_if_invalid_attribute!(attributes.keys)
+
+      # This defines the value even if it's not present in attributes
+      @attributes = {}
+
+      self.class.attribute_names.each do |name|
+        @attributes[name] = attributes[name]
+      end
+
+      @old_attributes = @attributes.dup
+    end
+
+    def add_s(string)
+      single = string.to_s.downcase
+      "#{single}s"
+    end
+
+    def self.all
+      MiniActiveRecord::Model.execute("SELECT * FROM #{add_s(self.class)}").map do |row|
+        self.class.new(row)
+      end
+    end
+
+    def save
+      if new_record?
+        results = insert!
+      else
+        results = update!
+      end
+
+      # When we save, remove changes between new and old attributes
+      @old_attributes = @attributes.dup
+
+      results
+    end
+
+    def [](attribute)
+      raise_error_if_invalid_attribute!(attribute)
+
+      @attributes[attribute]
+    end
+
+    # e.g., chef[:first_name] = 'Steve'
+    def []=(attribute, value)
+      raise_error_if_invalid_attribute!(attribute)
+
+      @attributes[attribute] = value
+    end
+
+    # def self.all(table)
+    #   MiniActiveRecord::Model.execute("SELECT * FROM #{table}").map do |row|
+    #     self.new(row)
+    #   end
+    # end
 
     def self.inherited(klass)
     end

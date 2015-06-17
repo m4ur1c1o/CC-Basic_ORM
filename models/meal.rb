@@ -1,12 +1,7 @@
 class Meal < MiniActiveRecord::Model
-  def self.all
-    MiniActiveRecord::Model.execute("SELECT * FROM meals").map do |row|
-      Meal.new(row)
-    end
-  end
 
   def self.create(attributes)
-    record = self.new(attributes)
+    record = Meal.new(attributes)
     record.save
 
     record
@@ -24,34 +19,6 @@ class Meal < MiniActiveRecord::Model
 
   self.attribute_names = [:id, :name, :chef_id, :created_at, :updated_at]
 
-  attr_reader :attributes, :old_attributes
-
-  # e.g., Meal.new(id: 1, name: 'Chicken', created_at: '2012-12-01 05:54:30')
-  def initialize(attributes = {})
-    attributes.symbolize_keys!
-    raise_error_if_invalid_attribute!(attributes.keys)
-
-    @attributes = {}
-
-    Meal.attribute_names.each do |name|
-      @attributes[name] = attributes[name]
-    end
-
-    @old_attributes = @attributes.dup
-  end
-
-  def [](attribute)
-    raise_error_if_invalid_attribute!(attribute)
-
-    @attributes[attribute]
-  end
-
-  def []=(attribute, value)
-    raise_error_if_invalid_attribute!(attribute)
-
-    @attributes[attribute] = value
-  end
-
   def chef
     Chef.where('id = ?', self[:chef_id])
   end
@@ -66,20 +33,6 @@ class Meal < MiniActiveRecord::Model
   def new_record?
     self[:id].nil?
   end
-
-  def save
-    if new_record?
-      results = insert!
-    else
-      results = update!
-    end
-
-    # When we save, remove changes between new and old attributes
-    @old_attributes = @attributes.dup
-
-    results
-  end
-
 
   private
 
