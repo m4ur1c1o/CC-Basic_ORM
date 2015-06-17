@@ -20,14 +20,14 @@ module MiniActiveRecord
       @old_attributes = @attributes.dup
     end
 
-    def add_s(string)
+    def self.add_s(string)
       single = string.to_s.downcase
       "#{single}s"
     end
 
     def self.all
-      MiniActiveRecord::Model.execute("SELECT * FROM #{add_s(self.class)}").map do |row|
-        self.class.new(row)
+      MiniActiveRecord::Model.execute("SELECT * FROM #{add_s(self)}").map do |row|
+        self.new(row)
       end
     end
 
@@ -42,6 +42,29 @@ module MiniActiveRecord
       @old_attributes = @attributes.dup
 
       results
+    end
+
+    def self.create(attributes)
+      record = self.new(attributes)
+      record.save
+
+      record
+    end
+
+    def self.where(query, *args)
+      MiniActiveRecord::Model.execute("SELECT * FROM #{add_s(self)} WHERE #{query}", *args).map do |row|
+        self.new(row)
+      end
+    end
+
+    def self.find(pk)
+      self.where('id = ?', pk).first
+    end
+
+    # We say a record is "new" if it doesn't have a defined primary key in its
+    # attributes
+    def new_record?
+      self[:id].nil?
     end
 
     def [](attribute)
@@ -133,6 +156,37 @@ module MiniActiveRecord
 
 
     private
+
+    def insert!
+      self[:created_at] = DateTime.now
+      self[:updated_at] = DateTime.now
+
+      fields = self.attributes.keys
+      values = self.attributes.values
+      marks  = Array.new(fields.length) { '?' }.join(',')
+
+      insert_sql = "INSERT INTO #{self.class.add_s(self.class)} (#{fields.join(',')}) VALUES (#{marks})"
+      puts insert_sql
+
+      results = MiniActiveRecord::Model.execute(insert_sql, *values)
+
+      # This fetches the new primary key and updates this instance
+      self[:id] = MiniActiveRecord::Model.last_insert_row_id
+      results
+    end
+
+    def update!
+      self[:updated_at] = DateTime.now
+
+      fields = self.attributes.keys
+      values = self.attributes.values
+
+      update_clause = fields.map { |field| "#{field} = ?" }.join(',')
+      update_sql = "UPDATE #{self.class.add_s(self.class)} SET #{update_clause} WHERE id = ?"
+
+      # We have to use the (potentially) old ID attribute in case the user has re-set it.
+      MiniActiveRecord::Model.execute(update_sql, *values, self.old_attributes[:id])
+    end
 
     def self.prepare_value(value)
       case value

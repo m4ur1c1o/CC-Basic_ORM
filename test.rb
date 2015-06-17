@@ -17,7 +17,7 @@ end
 
 # Probando Save method
 
-new_chef = Chef.new(first_name: 'Sandra', last_name: 'Tirado', birthday: '1990-10-23', email: 'sandra@mail.com', phone: '123456789')
+# new_chef = Chef.new(first_name: 'Sandra', last_name: 'Tirado', birthday: '1990-10-23', email: 'sandra@mail.com', phone: '123456789')
 # new_chef.save
 # assert new_chef[:first_name] == 'Sandra'
 
@@ -33,23 +33,33 @@ new_chef = Chef.new(first_name: 'Sandra', last_name: 'Tirado', birthday: '1990-1
 # p new_chef[:first_name]
 
 # Probando metodo self.all
-# chef = Chef.new
-Chef.all
+# p Chef.all
+
+# Probando metodo self.create
+# new_chef = Chef.create(first_name: 'Mauricio', last_name: 'Garcia', birthday: '1987-10-23', email: 'mauricio@mail.com', phone: '987654321')
+# p new_chef
+
+# assert new_chef[:first_name] == 'Mauricio'
+
+# Probando metodo self.where()
+# puts Chef.where('first_name = ?', "Mauricio")
+
+# Probando metodo self.find
+# puts Chef.find(22)
+
+# Probando metodo self.new_record?
+# new_chef = Chef.new(first_name: 'Sandra', last_name: 'Tirado', birthday: '1990-10-23', email: 'sandra@mail.com', phone: '123456789')
+# new_chef.new_record?
 
 
+# Probando metodo .insert!
+# new_chef = Chef.new(first_name: 'Santiago', last_name: 'Perez', birthday: '1995-04-23', email: 'sabefo@mail.com', phone: '452698615')
+# puts new_chef.save
 
-
-
-
+# Probando metodo .update!
+# chefcito = Chef.find(28)
+# chefcito[:last_name] = 'Bermudez'
+# chefcito.save
 
 puts "finished"
 
-
-
-# def add_s(string)
-#   single = string.to_s.downcase
-#   "#{single}s"
-# end
-
-
-# puts add_s(new_chef.class)
